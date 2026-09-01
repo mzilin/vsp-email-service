@@ -7,20 +7,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import static com.mariuszilinskas.streamix.web.constant.ValidationMessages.*;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmailRequest {
 
-    @NotBlank(message = "type cannot be blank")
+    @NotBlank(message = "type " + CANNOT_BE_BLANK)
     private String type;
 
-    @NotBlank(message = "firstName cannot be blank")
+    @NotBlank(message = "firstName " + CANNOT_BE_BLANK)
     private String firstName;
 
-    @NotBlank(message = "email cannot be blank")
-    @Email(message = "email should be valid")
+    @NotBlank(message = "email " + CANNOT_BE_BLANK)
+    @Email(message = INVALID_EMAIL)
     private String email;
 
 }
