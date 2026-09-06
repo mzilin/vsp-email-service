@@ -38,29 +38,29 @@ ext {
 dependencies {
 	// Core Spring Boot
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-
-	// Streamix Platform
-	implementation 'com.mariuszilinskas.streamix:streamix-web-commons:1.0.1'
 
 	// Spring Cloud
 	implementation 'org.springframework.cloud:spring-cloud-starter-config'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-	// Email and Template
+	// Data & Persistence
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation group: 'com.amazonaws', name: 'aws-java-sdk-ses', version: '1.12.760'
 
-	// Other
-	implementation 'org.jetbrains:annotations:24.0.1'
+	// Messaging & Events
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 
-	// Lombok
+	// Streamix Platform
+	implementation 'com.mariuszilinskas.streamix:streamix-observability:1.0.1'
+	implementation 'com.mariuszilinskas.streamix:streamix-web-commons:1.0.1'
+
+	// Tooling
+	implementation 'org.jetbrains:annotations:24.0.1'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-
-	// Development
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
 	// Testing
