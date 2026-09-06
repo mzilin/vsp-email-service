@@ -2,7 +2,7 @@
 
 ![Build](https://img.shields.io/github/actions/workflow/status/mzilin/streamix-comms-email/build.yml?label=Build&logo=github&logoColor=white&style=flat)
 ![Coverage](https://img.shields.io/codecov/c/github/mzilin/streamix-comms-email?label=Coverage&logo=codecov&logoColor=white&style=flat)
-![Status](https://img.shields.io/badge/status-in_progress-yellow?label=Status)
+![Status](https://img.shields.io/badge/status-complete-brightgreen?label=Status)
 
 
 This repository contains the **Email Service** microservice for the **Streamix** (Video Streaming Platform), deployed in the **Comms** cluster. It is responsible for sending transactional and marketing emails that keep users engaged and informed.
@@ -20,8 +20,9 @@ For a complete system overview and links to all microservices, please refer to t
   * [Installation & Running](#installation--running)
   * [Running with Docker](#running-with-docker)
   * [Environment Variables](#environment-variables)
+* [Message Queues](#message-queues)
+* [Email Templates](#email-templates)
 * [Testing](#testing)
-* [Endpoints](#endpoints)
 * [CI/CD & Deployment](#cicd--deployment)
 * [Future Improvements](#future-improvements)
 * [License](#license)
@@ -56,6 +57,7 @@ This project relies on a set of key libraries and frameworks that support its co
 
 - **Spring Boot**
   - **Actuator**: Exposes app health, metrics, and monitoring endpoints.
+  - **OpenTelemetry**: Provides distributed tracing and metrics export via OTLP for observability.
   - **RabbitMQ (AMQP)**: Facilitates robust, asynchronous messaging between microservices, enhancing scalability and decoupling.
   - **Validation**: Provides declarative validation using JSR-380 annotations.
   - **Web**: Supports building RESTful endpoints and traditional MVC-based web applications.
@@ -67,6 +69,10 @@ This project relies on a set of key libraries and frameworks that support its co
 
 - **AWS**
   - **AWS Java SDK SES**: Provides integration with Amazon SES for sending emails using AWS's secure and scalable infrastructure.
+
+- **Streamix Platform**
+  - **streamix-observability**: Shared observability configuration across Streamix microservices.
+  - **streamix-web-commons**: Shared web utilities and common components for Streamix services.
 
 - **Developer Experience**
   - **Lombok**: Reduces boilerplate with annotations for getters, setters, and constructors.
@@ -140,9 +146,55 @@ Ensure you have the following installed on your machine:
 
 ### Environment Variables
 
-This microservice requires the following environment variable to be configured:
+This microservice requires the following environment variables to be configured:
 
-TBC
+| Variable                    | Description                                                     |
+|-----------------------------|-----------------------------------------------------------------|
+| `RMQ_HOST`                  | RabbitMQ host address                                           |
+| `RMQ_PORT`                  | RabbitMQ port                                                   |
+| `RMQ_USERNAME`              | RabbitMQ username                                               |
+| `RMQ_PASSWORD`              | RabbitMQ password                                               |
+| `RMQ_EXCHANGE`              | RabbitMQ exchange name                                          |
+| `RMQ_PLATFORM_EMAILS_Q`     | RabbitMQ queue name for platform emails                         |
+| `RMQ_PLATFORM_EMAILS_RK`    | RabbitMQ routing key for platform emails                        |
+| `AWS_ACCESS_KEY`            | AWS access key for SES authentication                           |
+| `AWS_SECRET_KEY`            | AWS secret key for SES authentication                           |
+| `AWS_REGION`                | AWS region for SES (e.g. `eu-west-1`)                          |
+| `FROM_EMAIL`                | Verified sender email address used in outgoing emails           |
+| `FRONTEND_BASE_URL`         | Base URL of the frontend application (used in email links)      |
+| `EUREKA_CLIENT_DEFAULT_ZONE` | Eureka Server URL for service registration and discovery       |
+| `OTEL_TRACES_ENDPOINT`      | OTLP endpoint for exporting distributed traces                  |
+| `OTEL_METRICS_ENDPOINT`     | OTLP endpoint for exporting metrics                             |
+
+
+## Message Queues
+
+The service does not expose public REST endpoints. Instead, it consumes messages asynchronously via **RabbitMQ** using a Direct Exchange.
+
+### Consumed Queue
+
+| Queue                   | Routing Key              | Exchange        |
+|-------------------------|--------------------------|-----------------|
+| `RMQ_PLATFORM_EMAILS_Q` | `RMQ_PLATFORM_EMAILS_RK` | `RMQ_EXCHANGE`  |
+
+The consumer reads an `EmailRequest` payload and routes it to the appropriate handler based on the `type` field:
+
+| Message Type | Additional Fields | Description                                              |
+|--------------|-------------------|----------------------------------------------------------|
+| `verify`     | `passcode`        | Sends an account verification passcode to the user.      |
+| `welcome`    | —                 | Sends a welcome email after successful account creation. |
+| `reset`      | `resetToken`      | Sends a password reset link to the user.                 |
+
+
+## Email Templates
+
+Emails are rendered using **Thymeleaf** templates. All templates extend a shared `base.html` layout that provides consistent Streamix branding, header, and footer.
+
+| Template             | Triggered By  | Description                                                                |
+|----------------------|---------------|----------------------------------------------------------------------------|
+| `verifyAccount.html` | `verify`      | Account verification passcode email. Passcode is valid for 15 minutes.     |
+| `welcome.html`       | `welcome`     | Welcome email sent after registration, highlighting key platform features. |
+| `resetPassword.html` | `reset`       | Password reset link email. Link is valid for 15 minutes.                   |
 
 
 ## Testing
@@ -155,11 +207,6 @@ To execute all tests, run:
 ```
 
 This setup ensures that changes can be safely verified and that the codebase remains robust, maintainable and well-documented.
-
-
-## Endpoints
-
-TBC
 
 
 ## CI/CD & Deployment
