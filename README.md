@@ -121,11 +121,18 @@ Ensure you have the following installed on your machine:
 
 ### Running with Docker
 
-1. Build the Docker image:
-    ```bash
-   docker build -t streamix-comms-email:latest .
+1. Create ~/.gradle/gradle.properties with your GitHub credentials:
+    ```properties
+    gpr.user=your_github_username
+    gpr.key=your_pat_token
     ```
-2. Run the container:
+2. Build the Docker image:
+    ```bash
+    docker build \
+      --secret id=gradle_properties,src=${HOME}/.gradle/gradle.properties \
+      -t streamix-comms-email:latest .
+    ```
+3. Run the container:
     ```bash
    docker run --rm --name streamix_email -p 8160:8160 streamix-comms-email:latest
     ```
